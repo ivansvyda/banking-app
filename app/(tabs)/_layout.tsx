@@ -3,15 +3,12 @@ import React from 'react';
 
 import { TabBarIcon } from '@/components/navigation/TabBarIcon';
 import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
 
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
+const TabLayout = () => {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+        tabBarActiveTintColor: Colors.tint,
         headerShown: false,
       }}>
       <Tabs.Screen
@@ -23,15 +20,35 @@ export default function TabLayout() {
           ),
         }}
       />
-      <Tabs.Screen
-        name="explore"
-        options={{
-          title: 'Explore',
-          tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name={focused ? 'code-slash' : 'code-slash-outline'} color={color} />
-          ),
-        }}
-      />
+        <Tabs.Screen
+            name="transactions"
+            options={{
+                title: 'Transactions',
+                tabBarIcon: ({ color, focused }) => (
+                    <TabBarIcon name={focused ? 'repeat' : 'repeat-outline'} color={color} />
+                ),
+            }}
+        />
+        <Tabs.Screen
+            name="reports"
+            options={{
+                title: 'Reports',
+                tabBarIcon: ({ color, focused }) => (
+                    <TabBarIcon name={focused ? 'bar-chart' : 'bar-chart-outline'} color={color} />
+                ),
+            }}
+        />
+        <Tabs.Screen
+            name="manage"
+            options={{
+                title: 'Manage',
+                tabBarIcon: ({ color, focused }) => (
+                    <TabBarIcon name={focused ? 'apps' : 'apps-outline'} color={color} />
+                ),
+            }}
+        />
     </Tabs>
   );
 }
+
+export default TabLayout;

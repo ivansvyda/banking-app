@@ -1,7 +1,7 @@
 import {View} from "react-native";
 
-const HomeScreen = () => {
+const ManageScreen = () => {
     return <View></View>
 }
 
-export default HomeScreen;
+export default ManageScreen
