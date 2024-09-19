@@ -3,8 +3,12 @@ import { Field } from "@/components/ui/Field";
 import { Button } from "@/components/ui/Button";
 import { Link } from "expo-router";
 import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
 
 const SignUpScreen = () => {
+  const { register } = useAuth();
+
+  const [data, setData] = useState({});
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -64,7 +68,10 @@ const SignUpScreen = () => {
             onChange={setRepeatPassword}
           />
         </View>
-        <Button style={{ marginTop: 20 }} onPress={() => {}}>
+        <Button
+          style={{ marginTop: 20 }}
+          onPress={() => register(firstName, lastName, email, password)}
+        >
           <Text style={{ color: "white", fontWeight: "600" }}>Submit</Text>
         </Button>
         <Text
@@ -73,7 +80,7 @@ const SignUpScreen = () => {
             textAlign: "center",
           }}
         >
-          Already have an account? <Link href="/">Login</Link>
+          Already have an account? <Link href="/sign-in">Login</Link>
         </Text>
       </View>
     </View>

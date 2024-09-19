@@ -1,12 +1,16 @@
-import { Text, View } from "react-native";
+import { ActivityIndicator, Text, View } from "react-native";
 import { Field } from "@/components/ui/Field";
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Link } from "expo-router";
+import { useAuth } from "@/hooks/useAuth";
+import { is } from "@babel/types";
 
-const SignIn = () => {
+const SignInScreen = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  const { login, isLoading } = useAuth();
 
   return (
     <View
@@ -45,8 +49,16 @@ const SignIn = () => {
             onChange={setPassword}
           />
         </View>
-        <Button style={{ marginTop: 20 }} onPress={() => {}}>
-          <Text style={{ color: "white", fontWeight: "600" }}>Submit</Text>
+        <Button
+          style={{ marginTop: 20 }}
+          onPress={() => login(email, password)}
+          disabled={isLoading}
+        >
+          {!isLoading ? (
+            <Text style={{ color: "white", fontWeight: "600" }}>Submit</Text>
+          ) : (
+            <ActivityIndicator />
+          )}
         </Button>
         <Text
           style={{
@@ -61,4 +73,4 @@ const SignIn = () => {
   );
 };
 
-export default SignIn;
+export default SignInScreen;

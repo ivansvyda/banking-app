@@ -1,11 +1,12 @@
 import { useFonts } from "expo-font";
-import { Stack } from "expo-router";
+import { Slot, Stack, Tabs } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import "react-native-reanimated";
-import { Colors } from "@/constants/Colors";
+import { ApolloClient, ApolloProvider, InMemoryCache } from "@apollo/client";
+import { AuthProvider } from "@/providers/AuthProvider";
+import * as SecureStore from "expo-secure-store";
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 const RootLayout = () => {
@@ -19,48 +20,36 @@ const RootLayout = () => {
     }
   }, [loaded]);
 
+  const [token, setToken] = useState<string | null>(null);
+
+  const fetchToken = async () => {
+    const accessToken = await SecureStore.getItemAsync("token");
+
+    setToken(accessToken);
+  };
+
+  useEffect(() => {
+    fetchToken();
+  }, []);
+
   if (!loaded) {
     return null;
   }
 
-  const auth = false;
-
-  if (auth) {
-    return (
-      <Stack
-        screenOptions={{
-          contentStyle: {
-            backgroundColor: Colors.background,
-          },
-        }}
-      >
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      </Stack>
-    );
-  }
+  const client = new ApolloClient({
+    uri: "http://localhost:3000/graphql",
+    cache: new InMemoryCache(),
+    headers: {
+      authorization: token ? `Bearer ${token}` : "",
+    },
+  });
 
   return (
-    <Stack
-      screenOptions={{
-        contentStyle: {
-          backgroundColor: Colors.background,
-        },
-      }}
-    >
-      <Stack.Screen
-        name="index"
-        options={{
-          headerShown: false,
-        }}
-      />
-      <Stack.Screen
-        name="sign-up"
-        options={{
-          headerShown: false,
-        }}
-      />
-      <Stack.Screen name="+not-found" />
-    </Stack>
+    <ApolloProvider client={client}>
+      <AuthProvider>
+        <Slot />
+      </AuthProvider>
+    </ApolloProvider>
   );
 };
 
