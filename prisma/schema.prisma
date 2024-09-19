@@ -1,0 +1,65 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String @id @default(uuid())
+  firstName String
+  lastName  String
+  email     String @unique
+  hash      String
+
+  cards Card[]
+
+  transactionsFrom Transaction[] @relation("TransactionsFrom")
+  transactionsTo   Transaction[] @relation("TransactionsTo")
+
+  updated_at DateTime @updatedAt
+  created_at DateTime @default(now())
+}
+
+model Card {
+  id         String @id @default(uuid())
+  cardNumber String @unique
+  type       String
+  balance    Float  @default(0.00)
+
+  ownerId String
+  owner   User   @relation(fields: [ownerId], references: [id])
+
+  transactionsFrom Transaction[] @relation("CardFrom")
+  transactionsTo   Transaction[] @relation("CardTo")
+
+  updated_at DateTime @updatedAt
+  created_at DateTime @default(now())
+}
+
+model Transaction {
+  id     String @id @default(uuid())
+  amount Int
+
+  fromCardId String
+  fromCard   Card   @relation("CardFrom", fields: [fromCardId], references: [id])
+
+  toCardId String
+  toCard   Card   @relation("CardTo", fields: [toCardId], references: [id])
+
+  senderId String
+  sender   User   @relation("TransactionsFrom", fields: [senderId], references: [id])
+
+  recieverId String
+  reciever   User   @relation("TransactionsTo", fields: [recieverId], references: [id])
+
+  created_at DateTime @default(now())
+}
