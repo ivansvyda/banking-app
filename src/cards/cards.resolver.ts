@@ -1,10 +1,11 @@
-import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
 import { CardsService } from './cards.service';
 import { Card } from './entities/card.entity';
 import { CreateCardInput } from './dto/create-card.input';
-import { UpdateCardInput } from './dto/update-card.input';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { User } from '@prisma/client';
+import { arrayMaxSize } from 'class-validator';
+import { TopUpCardInput } from './dto/topup-card.input';
 
 @Resolver(() => Card)
 export class CardsResolver {
@@ -19,22 +20,12 @@ export class CardsResolver {
   }
 
   @Query(() => [Card], { name: 'cards' })
-  findAll(@CurrentUser() user: User) {
-    return this.cardsService.findAll(user);
-  }
-
-  @Query(() => Card, { name: 'card' })
-  findOne(@Args('id', { type: () => String }) id: string) {
-    return this.cardsService.findOne(id);
+  userCards(@CurrentUser() user: User) {
+    return this.cardsService.findUserCards(user.id);
   }
 
   @Mutation(() => Card)
-  updateCard(@Args('updateCardInput') updateCardInput: UpdateCardInput) {
-    return this.cardsService.update(updateCardInput.id, updateCardInput);
-  }
-
-  @Mutation(() => Card)
-  removeCard(@Args('id', { type: () => String }) id: string) {
-    return this.cardsService.remove(id);
+  topUpCard(@Args('topUpCardInput') topUpCardInput: TopUpCardInput) {
+    return this.cardsService.topUpCard(topUpCardInput);
   }
 }

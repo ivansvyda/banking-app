@@ -38,18 +38,12 @@ export class UsersService {
   findByEmail(email: string): Promise<User> {
     return this.prismaService.user.findUnique({
       where: { email },
-      include: {
-        cards: true,
-      },
     });
   }
 
   findOne(id: string) {
     return this.prismaService.user.findUnique({
       where: { id },
-      include: {
-        cards: true,
-      },
     });
   }
 

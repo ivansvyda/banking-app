@@ -32,6 +32,8 @@ model User {
 model Card {
   id         String @id @default(uuid())
   cardNumber String @unique
+  CVV        String
+  expiresIn  String
   type       String
   balance    Float  @default(0.00)
 

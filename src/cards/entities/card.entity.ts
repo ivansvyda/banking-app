@@ -11,6 +11,12 @@ export class Card {
   cardNumber: string;
 
   @Field(() => String)
+  CVV: string;
+
+  @Field(() => String)
+  expiresIn: string;
+
+  @Field(() => String)
   type: string;
 
   @Field(() => Float)

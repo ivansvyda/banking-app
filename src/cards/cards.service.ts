@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { CreateCardInput } from './dto/create-card.input';
-import { UpdateCardInput } from './dto/update-card.input';
 import { PrismaService } from '../prisma.service';
+import { TopUpCardInput } from './dto/topup-card.input';
 
 const generateRandomNumber = (length: number): string => {
   let randomNumber = '';
@@ -18,9 +18,17 @@ export class CardsService {
   constructor(private readonly prismaService: PrismaService) {}
 
   async create(createCardInput: CreateCardInput, user: any) {
+    const today = new Date();
+    const month = today.getMonth() + 1;
+    const year = today.getFullYear() + 1;
+
+    const formattedMonth = String(month).padStart(2, '0');
+
     return await this.prismaService.card.create({
       data: {
         cardNumber: generateRandomNumber(12),
+        CVV: generateRandomNumber(3),
+        expiresIn: `${formattedMonth}/${year}`,
         type: createCardInput.type,
         owner: { connect: { id: user.id } },
       },
@@ -30,21 +38,20 @@ export class CardsService {
     });
   }
 
-  findAll(user: any) {
-    return this.prismaService.card.findMany({
-      where: { ownerId: user.id },
+  async findUserCards(id: string) {
+    return await this.prismaService.card.findMany({
+      where: { ownerId: id },
     });
   }
 
-  findOne(id: string) {
-    return `This action returns a #${id} card`;
-  }
-
-  update(id: string, updateCardInput: UpdateCardInput) {
-    return `This action updates a #${id} card`;
-  }
-
-  remove(id: string) {
-    return `This action removes a #${id} card`;
+  async topUpCard(topUpCardInput: TopUpCardInput) {
+    return await this.prismaService.card.update({
+      where: { id: topUpCardInput.id },
+      data: {
+        balance: {
+          increment: topUpCardInput.amount,
+        },
+      },
+    });
   }
 }

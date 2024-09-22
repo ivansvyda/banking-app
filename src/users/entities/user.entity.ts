@@ -19,12 +19,6 @@ export class User {
   @Field(() => String)
   hash: string;
 
-  @Field(() => [Card])
-  cards: Card[];
-
-  @Field(() => [Transaction])
-  transactions: Transaction[];
-
   @Field(() => Date)
   updated_at: Date;
 
