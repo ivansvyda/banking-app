@@ -8,7 +8,9 @@ export enum CardType {
 
 export interface ICard {
   id: string;
-  cardNumber: number;
+  cardNumber: string;
+  CVV: string;
+  expiresIn: string;
   type: CardType;
   balance: number;
   owner: IUser;

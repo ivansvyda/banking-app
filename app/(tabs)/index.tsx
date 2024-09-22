@@ -1,5 +1,6 @@
 import {
   ActivityIndicator,
+  Alert,
   Dimensions,
   SafeAreaView,
   Text,
@@ -11,75 +12,116 @@ import { Colors } from "@/constants/Colors";
 import { Action } from "@/components/Action";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Link } from "expo-router";
-import { useAuth } from "@/hooks/useAuth";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import RBSheet from "react-native-raw-bottom-sheet";
-import { gql, useMutation } from "@apollo/client";
-import { CardType } from "@/interfaces/card.interface";
-import {
-  useAnimatedScrollHandler,
-  useSharedValue,
-} from "react-native-reanimated";
-import Animated from "react-native-reanimated";
-import { BankCard } from "@/components/BankCard";
-
-const actions = [
-  {
-    icon: "add",
-    name: "Top up",
-    onPress: () => {},
-  },
-  {
-    icon: "refresh",
-    name: "Exchange",
-    onPress: () => {},
-  },
-  {
-    icon: "arrow-redo-outline",
-    name: "Transfer",
-    onPress: () => {},
-  },
-  {
-    icon: "card-outline",
-    name: "Details",
-    onPress: () => {},
-  },
-];
-
-const CREATE_CARD = gql(`
-    mutation CreateCard($createCardInput: CreateCardInput!) {
-        createCard(createCardInput: $createCardInput) {
-            id
-        }
-    }
-`);
+import { useMutation, useQuery } from "@apollo/client";
+import { CardType, ICard } from "@/interfaces/card.interface";
+import { GET_CARDS } from "@/graphql/queries/GET_CARDS";
+import { CREATE_CARD } from "@/graphql/mutations/CREATE_CARD";
+import { TOPUP_CARD } from "@/graphql/mutations/TOPUP_CARD";
+import { CardsSlider } from "@/components/CardsSlider";
 
 const { width } = Dimensions.get("screen");
 
 const HomeScreen = () => {
-  const { user, fetchUser, isLoadingUser } = useAuth();
+  const [cards, setCards] = useState<ICard[]>([]);
 
-  const [createCard] = useMutation(CREATE_CARD);
+  const { loading, error, data } = useQuery(GET_CARDS);
+  const [createCard, { loading: loadingCreatedCard }] = useMutation(
+    CREATE_CARD,
+    {
+      onCompleted: (data) => {
+        setCards([...cards, data.createCard]);
+      },
+    }
+  );
 
-  const refRBSheet = useRef<any>();
-
-  const scrollX = useSharedValue(0);
-
-  const onScrollHandler = useAnimatedScrollHandler({
-    onScroll: (e) => {
-      scrollX.value = e.contentOffset.x;
+  const [topUpCard] = useMutation(TOPUP_CARD, {
+    onCompleted: (data) => {
+      setCards((prevCards) =>
+        prevCards.map((card) =>
+          card.id === data.topUpCard.id ? data.topUpCard : card
+        )
+      );
     },
   });
 
-  const newCard = (type: CardType) => {
-    createCard({
+  const refRBSheet = useRef<any>();
+
+  const [paginationIndex, setPaginationIndex] = useState(0);
+
+  const handleCreateCard = async (type: CardType) => {
+    await createCard({
       variables: {
         createCardInput: {
           type: type,
         },
       },
-    }).then((r) => fetchUser());
+    });
   };
+
+  const handleTopUpCard = async (amount: number, id: string) => {
+    await topUpCard({
+      variables: {
+        topUpCardInput: {
+          id,
+          amount,
+        },
+      },
+    });
+  };
+
+  useEffect(() => {
+    if (data && data.cards) {
+      setCards(data.cards);
+    }
+  }, [data]);
+
+  const displayCards = [...cards, undefined];
+
+  const actions = [
+    {
+      icon: "add",
+      name: "Top up",
+      onPress: () => {
+        Alert.prompt("Top up balance", "", [
+          { text: "Cancel", style: "destructive", onPress: () => {} },
+          {
+            text: "Submit",
+            onPress: (value) => {
+              if (value) {
+                handleTopUpCard(parseFloat(value), cards[paginationIndex].id);
+              }
+            },
+          },
+        ]);
+      },
+    },
+    {
+      icon: "refresh",
+      name: "Exchange",
+      onPress: () => {},
+    },
+    {
+      icon: "arrow-redo-outline",
+      name: "Transfer",
+      onPress: () => {},
+    },
+    {
+      icon: "card-outline",
+      name: "Details",
+      onPress: () => {
+        Alert.alert(
+          "Details",
+          `Card number: ${cards[paginationIndex].cardNumber
+            .replace(/(.{4})/g, "$1 ")
+            .trim()}\nCVV: ${cards[paginationIndex].CVV}\nExpires in: ${
+            cards[paginationIndex].expiresIn
+          }`
+        );
+      },
+    },
+  ];
 
   return (
     <SafeAreaView
@@ -89,58 +131,64 @@ const HomeScreen = () => {
     >
       <View>
         <Header />
-        <View
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            marginTop: 16,
-            marginBottom: 40,
-            gap: 8,
-          }}
-        >
-          <Text
+        {!loading && !loadingCreatedCard ? (
+          <View
             style={{
-              fontSize: 32,
-              fontWeight: "bold",
-              color: Colors.tint,
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              marginTop: 16,
+              marginBottom: 40,
+              gap: 8,
             }}
           >
-            € 6.815,53
-          </Text>
-          <Text>Current balance</Text>
-        </View>
-        {!isLoadingUser ? (
-          user && user.cards.length > 0 ? (
-            <Animated.FlatList
-              style={{
-                marginBottom: 36,
-              }}
-              horizontal
-              pagingEnabled
-              data={user.cards}
-              showsHorizontalScrollIndicator={false}
-              onScroll={onScrollHandler}
-              renderItem={({ item, index }) => {
-                return (
-                  <BankCard
-                    key={index}
-                    item={item}
-                    index={index}
-                    arrayLength={user.cards.length}
-                    onAdd={() => refRBSheet.current.open()}
-                    scrollX={scrollX}
-                  />
-                );
-              }}
+            {cards.length > 0 && paginationIndex < cards.length ? (
+              <>
+                <Text
+                  style={{
+                    fontSize: 32,
+                    fontWeight: "bold",
+                    color: Colors.tint,
+                  }}
+                >
+                  € {cards[paginationIndex].balance.toFixed(2)}
+                </Text>
+                <Text>Current balance</Text>
+              </>
+            ) : (
+              <>
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontWeight: "bold",
+                    color: Colors.tint,
+                  }}
+                >
+                  Create a new card.
+                </Text>
+                <Text style={{ maxWidth: 250, textAlign: "center" }}>
+                  Use your card for euro operations across the Europe
+                </Text>
+              </>
+            )}
+          </View>
+        ) : (
+          <ActivityIndicator />
+        )}
+        {!loading && !loadingCreatedCard ? (
+          cards.length > 0 ? (
+            <CardsSlider
+              cards={displayCards}
+              setPaginationIndex={setPaginationIndex}
+              onAdd={() => refRBSheet.current.open()}
             />
           ) : (
             <TouchableOpacity
               style={{
                 width: width,
-                height: 200,
+                height: 190,
                 paddingHorizontal: 48,
-                marginBottom: 24,
+                marginBottom: 36,
               }}
               onPress={() => refRBSheet.current.open()}
             >
@@ -175,7 +223,7 @@ const HomeScreen = () => {
                 key={idx}
                 icon={action.icon}
                 name={action.name}
-                onPress={action.onPress}
+                onPress={() => action.onPress()}
               />
             );
           })}
@@ -252,13 +300,15 @@ const HomeScreen = () => {
               gap: 8,
             }}
           >
-            <TouchableOpacity onPress={() => newCard(CardType.PLATINUM)}>
+            <TouchableOpacity
+              onPress={() => handleCreateCard(CardType.PLATINUM)}
+            >
               <Text>Platinum</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => newCard(CardType.GOLD)}>
+            <TouchableOpacity onPress={() => handleCreateCard(CardType.GOLD)}>
               <Text>Gold</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => newCard(CardType.BLACK)}>
+            <TouchableOpacity onPress={() => handleCreateCard(CardType.BLACK)}>
               <Text>Black</Text>
             </TouchableOpacity>
           </View>

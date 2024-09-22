@@ -11,7 +11,7 @@ import { Colors } from "@/constants/Colors";
 import Ionicons from "@expo/vector-icons/Ionicons";
 
 interface IBankCard {
-  item: ICard;
+  item: ICard | undefined;
   index: number;
   arrayLength: number;
   onAdd: () => void;
@@ -34,7 +34,7 @@ export const BankCard: FC<IBankCard> = ({
           translateX: interpolate(
             scrollX.value,
             [(index - 1) * width, index * width, (index + 1) * width],
-            [-width * 0.17, 0, width * 0.17],
+            [-width * 0.2, 0, width * 0.2],
             Extrapolation.CLAMP
           ),
         },
@@ -47,81 +47,86 @@ export const BankCard: FC<IBankCard> = ({
           ),
         },
       ],
+      opacity: interpolate(
+        scrollX.value,
+        [(index - 1) * width, index * width, (index + 1) * width],
+        [0.65, 1, 0.65],
+        Extrapolation.CLAMP
+      ),
     };
   });
 
-  // @ts-ignore
-  return (
-    <>
+  if (!item) {
+    return (
       <Animated.View
-        key={index}
-        style={[
-          {
-            width: width,
-            justifyContent: "center",
-            alignItems: "center",
-            gap: 24,
-          },
-          rnAnimatedStyle,
-        ]}
+        style={{
+          width: width,
+          height: 190,
+          paddingHorizontal: 48,
+        }}
       >
-        {item.type === "platinum" ? (
-          <Image
-            source={require("../assets/cards/PLATINUM.png")}
-            style={{
-              width: 305,
-              height: 190,
-              objectFit: "cover",
-            }}
-          />
-        ) : item.type === "gold" ? (
-          <Image
-            source={require("../assets/cards/GOLD.png")}
-            style={{
-              width: 305,
-              height: 190,
-              objectFit: "cover",
-            }}
-          />
-        ) : (
-          <Image
-            source={require("../assets/cards/BLACK.png")}
-            style={{
-              width: 305,
-              height: 190,
-              objectFit: "cover",
-            }}
-          />
-        )}
-        <Text style={{ fontSize: 15 }}>
-          •••• •••• •••• {item.cardNumber.slice(-4)}
-        </Text>
-      </Animated.View>
-      {index === arrayLength - 1 && (
         <TouchableOpacity
           style={{
-            width: width,
-            height: 200,
-            paddingHorizontal: 48,
-            marginBottom: 24,
+            width: "100%",
+            height: "100%",
+            justifyContent: "center",
+            alignItems: "center",
+            borderWidth: 1,
+            borderRadius: 16,
+            borderColor: Colors.gray,
           }}
           onPress={onAdd}
         >
-          <View
-            style={{
-              width: "100%",
-              height: "100%",
-              justifyContent: "center",
-              alignItems: "center",
-              borderWidth: 1,
-              borderRadius: 16,
-              borderColor: Colors.gray,
-            }}
-          >
-            <Ionicons name="add" size={24} color={Colors.gray} />
-          </View>
+          <Ionicons name="add" size={24} color={Colors.gray} />
         </TouchableOpacity>
+      </Animated.View>
+    );
+  }
+
+  return (
+    <Animated.View
+      key={index}
+      style={[
+        {
+          width: width,
+          justifyContent: "center",
+          alignItems: "center",
+          gap: 24,
+        },
+        rnAnimatedStyle,
+      ]}
+    >
+      {item.type === "platinum" ? (
+        <Image
+          source={require("../assets/cards/PLATINUM.png")}
+          style={{
+            width: 305,
+            height: 190,
+            objectFit: "cover",
+          }}
+        />
+      ) : item.type === "gold" ? (
+        <Image
+          source={require("../assets/cards/GOLD.png")}
+          style={{
+            width: 305,
+            height: 190,
+            objectFit: "cover",
+          }}
+        />
+      ) : (
+        <Image
+          source={require("../assets/cards/BLACK.png")}
+          style={{
+            width: 305,
+            height: 190,
+            objectFit: "cover",
+          }}
+        />
       )}
-    </>
+      <Text style={{ fontSize: 15 }}>
+        •••• •••• •••• {item.cardNumber.slice(-4)}
+      </Text>
+    </Animated.View>
   );
 };

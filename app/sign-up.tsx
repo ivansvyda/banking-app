@@ -1,4 +1,4 @@
-import { Text, View } from "react-native";
+import { Alert, Text, View } from "react-native";
 import { Field } from "@/components/ui/Field";
 import { Button } from "@/components/ui/Button";
 import { Link } from "expo-router";
@@ -8,7 +8,6 @@ import { useAuth } from "@/hooks/useAuth";
 const SignUpScreen = () => {
   const { register } = useAuth();
 
-  const [data, setData] = useState({});
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -70,7 +69,13 @@ const SignUpScreen = () => {
         </View>
         <Button
           style={{ marginTop: 20 }}
-          onPress={() => register(firstName, lastName, email, password)}
+          onPress={() => {
+            if (password === repeatPassword) {
+              register(firstName, lastName, email, password);
+            } else {
+              Alert.alert("Failed to register!", "Passwords aren't the same.");
+            }
+          }}
         >
           <Text style={{ color: "white", fontWeight: "600" }}>Submit</Text>
         </Button>

@@ -19,7 +19,7 @@ interface IAuthContext {
     firstName: string,
     lastName: string,
     email: string,
-    password: string,
+    password: string
   ) => void;
   logout: () => void;
   fetchUser: () => void;
@@ -41,12 +41,6 @@ const AUTHENTICATE = gql(`
         firstName
         lastName
         email
-        cards {
-          id
-          cardNumber
-          type
-          balance
-        }
       }
       access_token
     }
@@ -60,12 +54,6 @@ const REGISTER = gql(`
        firstName
        lastName
        email
-       cards {
-          id
-          cardNumber
-          type
-          balance
-        }
     }
   }
 `);
@@ -77,12 +65,6 @@ const GET_USER = gql(`
       firstName
       lastName
       email
-      cards {
-        id
-        cardNumber
-        type
-        balance
-      }
     }
   }
 `);
@@ -110,7 +92,7 @@ export const AuthProvider: FC<IAuthProvider> = ({ children }) => {
       .then(async (r) => {
         await SecureStore.setItemAsync(
           "token",
-          r.data.authenticate.access_token,
+          r.data.authenticate.access_token
         );
 
         setToken(r.data.authenticate.access_token);
@@ -126,7 +108,7 @@ export const AuthProvider: FC<IAuthProvider> = ({ children }) => {
     firstName: string,
     lastName: string,
     email: string,
-    password: string,
+    password: string
   ) => {
     createUser({
       variables: {
@@ -186,7 +168,7 @@ export const AuthProvider: FC<IAuthProvider> = ({ children }) => {
       isLoading,
       isLoadingUser,
     }),
-    [user, token, isLoading, isLoadingUser],
+    [user, token, isLoading, isLoadingUser]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

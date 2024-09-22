@@ -4,7 +4,6 @@ import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Link } from "expo-router";
 import { useAuth } from "@/hooks/useAuth";
-import { is } from "@babel/types";
 
 const SignInScreen = () => {
   const [email, setEmail] = useState("");
