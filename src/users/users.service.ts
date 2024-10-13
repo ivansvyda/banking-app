@@ -27,7 +27,7 @@ export class UsersService {
       throw new InternalServerErrorException('Failed to create a user!');
     }
 
-    return this.prismaService.user.create({
+    return await this.prismaService.user.create({
       data: {
         ...data,
         hash: hash,
@@ -35,20 +35,36 @@ export class UsersService {
     });
   }
 
-  findByEmail(email: string): Promise<User> {
-    return this.prismaService.user.findUnique({
+  async findByEmail(email: string): Promise<User> {
+    return await this.prismaService.user.findUnique({
       where: { email },
     });
   }
 
-  findOne(id: string) {
-    return this.prismaService.user.findUnique({
-      where: { id },
+  async findOne(id: string) {
+    return await this.prismaService.user.findUnique({
+      where: {
+        id,
+      },
     });
   }
 
-  update(id: string, updateUserInput: UpdateUserInput) {
-    return this.prismaService.user.update({
+  async findMany(id: string) {
+    return await this.prismaService.user.findMany({
+      where: {
+        id: {
+          not: id,
+        },
+        cards: {
+          some: {},
+        },
+      },
+      include: { cards: true },
+    });
+  }
+
+  async update(id: string, updateUserInput: UpdateUserInput) {
+    return await this.prismaService.user.update({
       where: { id },
       data: {
         ...updateUserInput,

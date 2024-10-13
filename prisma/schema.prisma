@@ -22,9 +22,6 @@ model User {
 
   cards Card[]
 
-  transactionsFrom Transaction[] @relation("TransactionsFrom")
-  transactionsTo   Transaction[] @relation("TransactionsTo")
-
   updated_at DateTime @updatedAt
   created_at DateTime @default(now())
 }
@@ -40,8 +37,8 @@ model Card {
   ownerId String
   owner   User   @relation(fields: [ownerId], references: [id])
 
-  transactionsFrom Transaction[] @relation("CardFrom")
-  transactionsTo   Transaction[] @relation("CardTo")
+  transactionsFrom Transaction[] @relation("Sender")
+  transactionsTo   Transaction[] @relation("Reciever")
 
   updated_at DateTime @updatedAt
   created_at DateTime @default(now())
@@ -51,17 +48,11 @@ model Transaction {
   id     String @id @default(uuid())
   amount Int
 
-  fromCardId String
-  fromCard   Card   @relation("CardFrom", fields: [fromCardId], references: [id])
-
-  toCardId String
-  toCard   Card   @relation("CardTo", fields: [toCardId], references: [id])
-
   senderId String
-  sender   User   @relation("TransactionsFrom", fields: [senderId], references: [id])
+  sender   Card   @relation("Sender", fields: [senderId], references: [id])
 
   recieverId String
-  reciever   User   @relation("TransactionsTo", fields: [recieverId], references: [id])
+  reciever   Card   @relation("Reciever", fields: [recieverId], references: [id])
 
   created_at DateTime @default(now())
 }

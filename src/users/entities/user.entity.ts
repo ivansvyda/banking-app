@@ -1,6 +1,5 @@
 import { ObjectType, Field, ID } from '@nestjs/graphql';
-import { Card } from '../../cards/entities/card.entity';
-import { Transaction } from '../../transactions/entities/transaction.entity';
+import { Card } from 'src/cards/entities/card.entity';
 
 @ObjectType()
 export class User {
@@ -18,6 +17,9 @@ export class User {
 
   @Field(() => String)
   hash: string;
+
+  @Field(() => [Card])
+  cards: Card[];
 
   @Field(() => Date)
   updated_at: Date;

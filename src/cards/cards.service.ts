@@ -44,6 +44,20 @@ export class CardsService {
     });
   }
 
+  async findRecipientCards(id: string) {
+    return await this.prismaService.card.findMany({
+      where: { ownerId: id },
+    });
+  }
+
+  async recipientCardsCount(id: string) {
+    const cards = await this.prismaService.card.findMany({
+      where: { ownerId: id },
+    });
+
+    return cards.length;
+  }
+
   async topUpCard(topUpCardInput: TopUpCardInput) {
     return await this.prismaService.card.update({
       where: { id: topUpCardInput.id },

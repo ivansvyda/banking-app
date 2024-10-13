@@ -1,6 +1,5 @@
 import { ObjectType, Field, Float, ID } from '@nestjs/graphql';
 import { Card } from '../../cards/entities/card.entity';
-import { User } from '../../users/entities/user.entity';
 
 @ObjectType()
 export class Transaction {
@@ -11,16 +10,10 @@ export class Transaction {
   amount: number;
 
   @Field(() => Card)
-  fromCard: Card;
+  sender: Card;
 
   @Field(() => Card)
-  toCard: Card;
-
-  @Field(() => User)
-  sender: User;
-
-  @Field(() => User)
-  reciever: User;
+  reciever: Card;
 
   @Field(() => Date)
   created_at: Date;
