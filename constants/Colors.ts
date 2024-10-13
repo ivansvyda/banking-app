@@ -4,11 +4,12 @@
  */
 
 export const Colors = {
-  text: "#000",
-  background: "#fff",
-  tint: "#1f2937",
-  secondary: "#f3f4f6",
-  gray: "#ebecf0",
-  tabIconDefault: "#505869",
-  tabIconSelected: "#1f2937",
+  text: '#000',
+  background: '#fff',
+  tint: '#1f2937',
+  secondary: '#f3f4f6',
+  gray: '#ebecf0',
+  gold: '#c4af37',
+  tabIconDefault: '#505869',
+  tabIconSelected: '#1f2937',
 };

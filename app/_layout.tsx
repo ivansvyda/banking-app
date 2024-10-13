@@ -6,6 +6,7 @@ import "react-native-reanimated";
 import { ApolloClient, ApolloProvider, InMemoryCache } from "@apollo/client";
 import { AuthProvider } from "@/providers/AuthProvider";
 import * as SecureStore from "expo-secure-store";
+import { ToastProvider } from "react-native-toast-notifications";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -47,7 +48,9 @@ const RootLayout = () => {
   return (
     <ApolloProvider client={client}>
       <AuthProvider>
-        <Slot />
+        <ToastProvider>
+          <Slot />
+        </ToastProvider>
       </AuthProvider>
     </ApolloProvider>
   );

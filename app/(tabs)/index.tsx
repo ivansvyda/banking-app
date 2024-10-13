@@ -6,24 +6,29 @@ import {
   Text,
   TouchableOpacity,
   View,
-} from "react-native";
-import { Header } from "@/components/Header";
-import { Colors } from "@/constants/Colors";
-import { Action } from "@/components/Action";
-import Ionicons from "@expo/vector-icons/Ionicons";
-import { Link } from "expo-router";
-import { useEffect, useRef, useState } from "react";
-import RBSheet from "react-native-raw-bottom-sheet";
-import { useMutation, useQuery } from "@apollo/client";
-import { CardType, ICard } from "@/interfaces/card.interface";
-import { GET_CARDS } from "@/graphql/queries/GET_CARDS";
-import { CREATE_CARD } from "@/graphql/mutations/CREATE_CARD";
-import { TOPUP_CARD } from "@/graphql/mutations/TOPUP_CARD";
-import { CardsSlider } from "@/components/CardsSlider";
+} from 'react-native';
+import { Header } from '@/components/Header';
+import { Colors } from '@/constants/Colors';
+import { Action } from '@/components/Action';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { Link } from 'expo-router';
+import { useEffect, useRef, useState } from 'react';
+import RBSheet from 'react-native-raw-bottom-sheet';
+import { useMutation, useQuery } from '@apollo/client';
+import { CardType, ICard } from '@/interfaces/card.interface';
+import { GET_CARDS } from '@/graphql/queries/GET_CARDS';
+import { CREATE_CARD } from '@/graphql/mutations/CREATE_CARD';
+import { TOPUP_CARD } from '@/graphql/mutations/TOPUP_CARD';
+import { CardsSlider } from '@/components/CardsSlider';
+import { useToast } from 'react-native-toast-notifications';
+import { CardTypeModal } from '@/components/modals/CardTypeModal';
+import { TransferModal } from '@/components/modals/TransferModal';
 
-const { width } = Dimensions.get("screen");
+const { width } = Dimensions.get('screen');
 
 const HomeScreen = () => {
+  const toast = useToast();
+
   const [cards, setCards] = useState<ICard[]>([]);
 
   const { loading, error, data } = useQuery(GET_CARDS);
@@ -32,6 +37,9 @@ const HomeScreen = () => {
     {
       onCompleted: (data) => {
         setCards([...cards, data.createCard]);
+        toast.show('Card was successfully created!', {
+          type: 'success',
+        });
       },
     }
   );
@@ -46,7 +54,8 @@ const HomeScreen = () => {
     },
   });
 
-  const refRBSheet = useRef<any>();
+  const CTRef = useRef<any>();
+  const TRRef = useRef<any>();
 
   const [paginationIndex, setPaginationIndex] = useState(0);
 
@@ -81,13 +90,13 @@ const HomeScreen = () => {
 
   const actions = [
     {
-      icon: "add",
-      name: "Top up",
+      icon: 'add',
+      name: 'Top up',
       onPress: () => {
-        Alert.prompt("Top up balance", "", [
-          { text: "Cancel", style: "destructive", onPress: () => {} },
+        Alert.prompt('Top up balance', '', [
+          { text: 'Cancel', style: 'destructive', onPress: () => {} },
           {
-            text: "Submit",
+            text: 'Submit',
             onPress: (value) => {
               if (value) {
                 handleTopUpCard(parseFloat(value), cards[paginationIndex].id);
@@ -98,23 +107,23 @@ const HomeScreen = () => {
       },
     },
     {
-      icon: "refresh",
-      name: "Exchange",
+      icon: 'refresh',
+      name: 'Exchange',
       onPress: () => {},
     },
     {
-      icon: "arrow-redo-outline",
-      name: "Transfer",
-      onPress: () => {},
+      icon: 'arrow-redo-outline',
+      name: 'Transfer',
+      onPress: () => TRRef.current.open(),
     },
     {
-      icon: "card-outline",
-      name: "Details",
+      icon: 'card-outline',
+      name: 'Details',
       onPress: () => {
         Alert.alert(
-          "Details",
+          'Details',
           `Card number: ${cards[paginationIndex].cardNumber
-            .replace(/(.{4})/g, "$1 ")
+            .replace(/(.{4})/g, '$1 ')
             .trim()}\nCVV: ${cards[paginationIndex].CVV}\nExpires in: ${
             cards[paginationIndex].expiresIn
           }`
@@ -126,7 +135,7 @@ const HomeScreen = () => {
   return (
     <SafeAreaView
       style={{
-        backgroundColor: "#fff",
+        backgroundColor: '#fff',
       }}
     >
       <View>
@@ -134,9 +143,9 @@ const HomeScreen = () => {
         {!loading && !loadingCreatedCard ? (
           <View
             style={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
               marginTop: 16,
               marginBottom: 40,
               gap: 8,
@@ -147,11 +156,14 @@ const HomeScreen = () => {
                 <Text
                   style={{
                     fontSize: 32,
-                    fontWeight: "bold",
+                    fontWeight: 'bold',
                     color: Colors.tint,
                   }}
                 >
-                  € {cards[paginationIndex].balance.toFixed(2)}
+                  {new Intl.NumberFormat('en-US', {
+                    style: 'currency',
+                    currency: 'EUR',
+                  }).format(cards[paginationIndex].balance)}
                 </Text>
                 <Text>Current balance</Text>
               </>
@@ -160,13 +172,13 @@ const HomeScreen = () => {
                 <Text
                   style={{
                     fontSize: 16,
-                    fontWeight: "bold",
+                    fontWeight: 'bold',
                     color: Colors.tint,
                   }}
                 >
                   Create a new card.
                 </Text>
-                <Text style={{ maxWidth: 250, textAlign: "center" }}>
+                <Text style={{ maxWidth: 250, textAlign: 'center' }}>
                   Use your card for euro operations across the Europe
                 </Text>
               </>
@@ -180,7 +192,7 @@ const HomeScreen = () => {
             <CardsSlider
               cards={displayCards}
               setPaginationIndex={setPaginationIndex}
-              onAdd={() => refRBSheet.current.open()}
+              onAdd={() => CTRef.current.open()}
             />
           ) : (
             <TouchableOpacity
@@ -190,20 +202,20 @@ const HomeScreen = () => {
                 paddingHorizontal: 48,
                 marginBottom: 36,
               }}
-              onPress={() => refRBSheet.current.open()}
+              onPress={() => CTRef.current.open()}
             >
               <View
                 style={{
-                  width: "100%",
-                  height: "100%",
-                  justifyContent: "center",
-                  alignItems: "center",
+                  width: '100%',
+                  height: '100%',
+                  justifyContent: 'center',
+                  alignItems: 'center',
                   borderWidth: 1,
                   borderRadius: 16,
                   borderColor: Colors.gray,
                 }}
               >
-                <Ionicons name="add" size={24} color={Colors.gray} />
+                <Ionicons name='add' size={24} color={Colors.gray} />
               </View>
             </TouchableOpacity>
           )
@@ -213,8 +225,8 @@ const HomeScreen = () => {
         <View
           style={{
             paddingHorizontal: 40,
-            flexDirection: "row",
-            justifyContent: "space-between",
+            flexDirection: 'row',
+            justifyContent: 'space-between',
           }}
         >
           {actions.map((action, idx) => {
@@ -243,14 +255,14 @@ const HomeScreen = () => {
         >
           <View
             style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
+              flexDirection: 'row',
+              justifyContent: 'space-between',
             }}
           >
             <Text
               style={{
                 fontSize: 16,
-                fontWeight: "500",
+                fontWeight: '500',
                 color: Colors.tint,
               }}
             >
@@ -259,61 +271,18 @@ const HomeScreen = () => {
             <Link
               style={{
                 fontSize: 14,
-                fontWeight: "500",
+                fontWeight: '500',
                 color: Colors.tint,
               }}
-              href="/transactions"
+              href='/transactions'
             >
               View all
             </Link>
           </View>
         </View>
       </View>
-      <RBSheet
-        ref={refRBSheet}
-        draggable
-        openDuration={250}
-        customStyles={{
-          container: {
-            borderTopRightRadius: 12,
-            borderTopLeftRadius: 12,
-          },
-        }}
-      >
-        <View
-          style={{
-            paddingVertical: 4,
-            paddingHorizontal: 24,
-          }}
-        >
-          <Text
-            style={{
-              fontSize: 20,
-              fontWeight: "600",
-              marginBottom: 12,
-            }}
-          >
-            Choose card type
-          </Text>
-          <View
-            style={{
-              gap: 8,
-            }}
-          >
-            <TouchableOpacity
-              onPress={() => handleCreateCard(CardType.PLATINUM)}
-            >
-              <Text>Platinum</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => handleCreateCard(CardType.GOLD)}>
-              <Text>Gold</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => handleCreateCard(CardType.BLACK)}>
-              <Text>Black</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </RBSheet>
+      <CardTypeModal CTRef={CTRef} handleCreateCard={handleCreateCard} />
+      <TransferModal TRRef={TRRef} />
     </SafeAreaView>
   );
 };

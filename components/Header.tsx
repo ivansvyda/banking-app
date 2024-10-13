@@ -2,6 +2,7 @@ import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Colors } from "@/constants/Colors";
 import { useAuth } from "@/hooks/useAuth";
+import { FC } from "react";
 
 export const Header = () => {
   const { user, logout, isLoadingUser } = useAuth();
